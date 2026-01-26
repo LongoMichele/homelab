@@ -1,0 +1,36 @@
+services:
+  broker:
+    container_name: homelab-redis
+    image: docker.io/library/redis:8
+    volumes:
+      - redisdata:/data
+    restart: unless-stopped
+  db:
+    container_name: homelab-postgres
+    image: docker.io/library/postgres:18
+    environment:
+      POSTGRES_DB: ${PAPERLESS_DB_NAME}
+      POSTGRES_USER: ${PAPERLESS_DB_USER}
+      POSTGRES_PASSWORD: ${PAPERLESS_DB_PASS}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    restart: unless-stopped
+  webserver:
+    container_name: homelab-paperless
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    env_file: .env
+    environment:
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBHOST: db
+    ports:
+      - "${PAPERLESS_PORT}:${PAPERLESS_PORT}"
+    volumes:
+      - ${PAPERLESS_DATA_VOLUME}:/usr/src/paperless/data
+      - ${PAPERLESS_MEDIA_VOLUME}:/usr/src/paperless/media
+      - ${PAPERLESS_EXPORT_VOLUME}:/usr/src/paperless/export
+      - ${PAPERLESS_CONSUME_VOLUME}:/usr/src/paperless/consume
+    depends_on:
+      - db
+      - broker
+    restart: unless-stopped
+

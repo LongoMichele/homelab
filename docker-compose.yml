@@ -1,2 +1,5 @@
 volumes:
   data:
+  media:
+  pgdata:
+  redisdata:
