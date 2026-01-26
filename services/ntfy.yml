@@ -1,0 +1,25 @@
+services:
+  ntfy:
+    container_name: homelab-ntfy
+    image: binwiederhier/ntfy
+    user: ${PUID}:${PGID}
+    environment:
+      TZ: ${TZ}
+      NTFY_BASE_URL: ${NTFY_BASE_URL}
+      NTFY_BEHIND_PROXY: true
+      NTFY_ENABLE_LOGIN: true
+      NTFY_REQUIRE_LOGIN: true
+      NTFY_CACHE_FILE: /var/lib/ntfy/cache.db
+      NTFY_AUTH_FILE: /var/lib/ntfy/auth.db
+      NTFY_AUTH_DEFAULT_ACCESS: deny-all
+      NTFY_AUTH_USERS: "${NTFY_USER}:${NTFY_PASS}:admin"
+      NTFY_ATTACHMENT_CACHE_DIR: /var/lib/ntfy/attachments
+    command:
+      - serve
+    volumes:
+      - ${CONFIG_ROOT}/ntfy:/var/lib/ntfy
+    ports:
+      - ${NTFY_PORT}:80
+    restart: unless-stopped
+    init: true
+
