@@ -8,7 +8,7 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 set -a
-source .env
+source .env.bk
 set +a
 
 LOG_FILE_DATE=$(date '+%Y-%m-%d_%H-%M-%S')

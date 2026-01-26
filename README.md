@@ -99,8 +99,9 @@ WantedBy=timers.target
 
 ## 🔐 Environment variables
 
-The `.env` file is used to store environment variables required by services and scripts.
+The `.env.sample` file must be copied to `.env`.  
+This file is used by Docker services and containers.
 
-It currently contains variables used in both bash scripts and docker services.\
-Scripts and services require an `.env` file to run — use `.env.sample` as a starting point.
+The `.env.bk.sample` file must be copied to `.env.bk`.  
+This file is used by the backup scripts.
 
