@@ -1,0 +1,39 @@
+#!/bin/bash
+
+ENV_FILE="./.env"
+
+if [ ! -f "$ENV_FILE" ]; then
+  echo "❌  Missing $ENV_FILE file"
+  exit 1
+fi
+
+SERVICES_DIR="./services"
+SERVICE_FILES=$(find "$SERVICES_DIR" -maxdepth 1 -type f -name "*.yml" -print0 | sort -z | xargs -0 -I {} echo -f {} | tr '\n' ' ' | sed 's/ $//')
+COMPOSE_FILES="-f ./docker-compose.yml $SERVICE_FILES"
+
+case "$1" in
+  up)
+    echo "🚀 Starting containers..."
+    docker compose $COMPOSE_FILES up
+    ;;
+  detach)
+    echo "🚀 Starting detached containers..."
+    docker compose $COMPOSE_FILES up -d
+    ;;
+  down)
+    echo "🛑 Stopping containers..."
+    docker compose $COMPOSE_FILES down --remove-orphans
+    ;;
+  pull)
+    echo "⬇️  Updating containers..."
+    docker compose $COMPOSE_FILES pull
+    ;;
+  *)
+    echo "Usage:"
+    echo "  $0 detach → Starts all containers and detach"
+    echo "  $0 up     → Starts all containers"
+    echo "  $0 down   → Stops all servies and removes orphans"
+    echo "  $0 pull   → Updates all container images"
+    exit 1
+    ;;
+esac

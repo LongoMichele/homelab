@@ -1,0 +1,22 @@
+services:
+  dash:
+    container_name: Dash
+    image: mauricenino/dashdot:latest
+    privileged: true
+    ports:
+      - ${DASH_PORT}:3001
+    volumes:
+      - /:/mnt/host:ro
+    restart: unless-stopped
+  homarr:
+    container_name: Homarr
+    image: ghcr.io/homarr-labs/homarr:latest
+    environment:
+      - SECRET_ENCRYPTION_KEY=${HOMARR_KEY}
+    ports:
+      - ${HOMARR_PORT}:7575
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONFIG_ROOT}/homarr/appdata:/appdata
+    restart: unless-stopped
+
