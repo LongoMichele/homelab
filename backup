@@ -1,0 +1,66 @@
+#!/bin/bash
+
+ENV_FILE="./.env"
+
+if [ ! -f "$ENV_FILE" ]; then
+  echo "❌ Missing $ENV_FILE file"
+  exit 1
+fi
+
+set -a
+source .env
+set +a
+
+LOG_FILE_DATE=$(date '+%Y-%m-%d_%H-%M-%S')
+LOG_FILE="$LOG_PATH/restic-backup_$LOG_FILE_DATE.log"
+mkdir -p "$LOG_PATH"
+touch "$LOG_FILE"
+
+logLine() {
+  local LINE=$1
+  local INCLUDE_TIMESTAMP=$2
+
+  if [[ "$INCLUDE_TIMESTAMP" -eq 1 ]]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $LINE" >> "$LOG_FILE"
+  else
+    echo "$LINE" >> "$LOG_FILE"
+  fi
+}
+
+logLine "=== Starting backup process ===" 1
+
+if ! [[ -d "$REPO_PATH" ]]; then
+  logLine "Backup repository \"$REPO_PATH\" not found." 0
+  logLine "=== Completed backup process ===" 1
+  exit 1
+fi
+
+if ! [[ ${#BACKUP_PATHS[@]} -gt 0 ]]; then
+  logLine "BACKUP_PATHS empty or missing from .env file." 0
+  logLine "=== Completed backup process ===" 1
+  exit 1
+fi
+
+for path in "${BACKUP_PATHS[@]}"; do
+  if ! [[ -d "$path" || -f "$path" ]]; then
+    logLine "Path \"$path\" not found." 0
+    logLine "=== Completed backup process ===" 1
+    exit 1
+  fi
+done
+
+logLine "Requested backup for:" 0
+for path in "${BACKUP_PATHS[@]}"; do
+  logLine " - $path" 0
+done
+logLine "" 0
+logLine "Repo directory: $LOG_FILE" 0
+
+if ! [[ ${#EXCLUDE_PATHS[@]} -gt 0 ]]; then
+  restic backup "${BACKUP_PATHS[@]}" "${EXCLUDES[@]}" --repo "$REPO_PATH" --password-command "echo $REPO_PASSWORD" >> "$LOG_FILE" 2>&1
+else
+  restic backup "${BACKUP_PATHS[@]}" --repo "$REPO_PATH" --password-command "echo $REPO_PASSWORD" >> "$LOG_FILE" 2>&1
+fi
+
+logLine "=== Completed backup process ===" 1
+
