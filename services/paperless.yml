@@ -1,12 +1,12 @@
 services:
   broker:
-    container_name: homelab-redis
+    container_name: Redis
     image: docker.io/library/redis:8
     volumes:
       - redisdata:/data
     restart: unless-stopped
   db:
-    container_name: homelab-postgres
+    container_name: Postgres
     image: docker.io/library/postgres:18
     environment:
       POSTGRES_DB: ${PAPERLESS_DB_NAME}
@@ -16,7 +16,7 @@ services:
       - pgdata:/var/lib/postgresql
     restart: unless-stopped
   webserver:
-    container_name: homelab-paperless
+    container_name: Paperless
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
     env_file: .env
     environment:

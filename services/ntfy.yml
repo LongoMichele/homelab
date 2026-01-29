@@ -1,6 +1,6 @@
 services:
   ntfy:
-    container_name: homelab-ntfy
+    container_name: Ntfy
     image: binwiederhier/ntfy
     user: ${PUID}:${PGID}
     environment:

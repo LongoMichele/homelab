@@ -1,6 +1,6 @@
 services:
   dash:
-    container_name: homelab-dash
+    container_name: Dash
     image: mauricenino/dashdot:latest
     privileged: true
     ports:
@@ -9,7 +9,7 @@ services:
       - /:/mnt/host:ro
     restart: unless-stopped
   homarr:
-    container_name: homelab-homarr
+    container_name: Homarr
     image: ghcr.io/homarr-labs/homarr:latest
     environment:
       - SECRET_ENCRYPTION_KEY=${HOMARR_KEY}
