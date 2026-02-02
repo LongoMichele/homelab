@@ -21,8 +21,12 @@ case "$1" in
     docker compose $COMPOSE_FILES up -d
     ;;
   down)
-    echo "🛑 Stopping containers..."
+    echo "🛑 Stopping & removing containers..."
     docker compose $COMPOSE_FILES down --remove-orphans
+    ;;
+  stop)
+    echo "🛑 Stopping containers..."
+    docker compose $COMPOSE_FILES stop
     ;;
   pull)
     echo "⬇️  Updating containers..."
@@ -33,6 +37,7 @@ case "$1" in
     echo "  $0 detach → Starts all containers and detach"
     echo "  $0 up     → Starts all containers"
     echo "  $0 down   → Stops all servies and removes orphans"
+    echo "  $0 stop   → Stops all servies"
     echo "  $0 pull   → Updates all container images"
     exit 1
     ;;
