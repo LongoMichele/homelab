@@ -33,13 +33,23 @@ logLine() {
 logLine "=== Starting backup process ===" 1
 curl -H "$NTFY_AUTH" -d "Backup started" $NTFY_URL
 
-if ! [[ -d "$REPO_PATH" ]]; then
-  logLine "Backup repository \"$REPO_PATH\" not found." 0
+if ! [[ ${#REPO_PATHS[@]} -gt 0 ]]; then
+  logLine "No backup repositories given." 0
   logLine "=== Completed backup process ===" 1
   curl -H "$NTFY_AUTH" -H "Filename: backupLog.log" -T "$LOG_FILE" $NTFY_URL
   curl -H "$NTFY_AUTH" -d "Backup failed" $NTFY_URL
   exit 1
 fi
+
+for REPO_PATH in "${REPO_PATHS[@]}"; do
+  if ! [[ -d "$REPO_PATH" ]]; then
+    logLine "Backup repository \"$REPO_PATH\" not found." 0
+    logLine "=== Completed backup process ===" 1
+    curl -H "$NTFY_AUTH" -H "Filename: backupLog.log" -T "$LOG_FILE" $NTFY_URL
+    curl -H "$NTFY_AUTH" -d "Backup failed" $NTFY_URL
+    exit 1
+  fi
+done
 
 if ! [[ ${#BACKUP_PATHS[@]} -gt 0 ]]; then
   logLine "BACKUP_PATHS empty or missing from .env file." 0
@@ -49,9 +59,9 @@ if ! [[ ${#BACKUP_PATHS[@]} -gt 0 ]]; then
   exit 1
 fi
 
-for path in "${BACKUP_PATHS[@]}"; do
-  if ! [[ -d "$path" || -f "$path" ]]; then
-    logLine "Path \"$path\" not found." 0
+for BACKUP_PATH in "${BACKUP_PATHS[@]}"; do
+  if ! [[ -d "$BACKUP_PATH" || -f "$BACKUP_PATH" ]]; then
+    logLine "Path \"$BACKUP_PATH\" not found." 0
     logLine "=== Completed backup process ===" 1
     curl -H "$NTFY_AUTH" -H "Filename: backupLog.log" -T "$LOG_FILE" $NTFY_URL
     curl -H "$NTFY_AUTH" -d "Backup failed" $NTFY_URL
@@ -67,13 +77,19 @@ logLine "" 0
 logLine "Repo directory: $LOG_FILE" 0
 logLine "" 0
 
+logLine "Running Paperless document exporter..." 0
 docker exec Paperless document_exporter ../export --use-folder-prefix --delete >> "$LOG_FILE" 2>&1
+logLine "" 0
 
-if ! [[ ${#EXCLUDE_PATHS[@]} -gt 0 ]]; then
-  restic backup "${BACKUP_PATHS[@]}" "${EXCLUDES[@]}" --repo "$REPO_PATH" --password-command "echo $REPO_PASSWORD" >> "$LOG_FILE" 2>&1
-else
-  restic backup "${BACKUP_PATHS[@]}" --repo "$REPO_PATH" --password-command "echo $REPO_PASSWORD" >> "$LOG_FILE" 2>&1
-fi
+for REPO_PATH in "${REPO_PATHS[@]}"; do
+  logLine "Starting backup for repo ${REPO_PATH}" 0
+  if ! [[ ${#EXCLUDE_PATHS[@]} -gt 0 ]]; then
+    restic backup "${BACKUP_PATHS[@]}" "${EXCLUDES[@]}" --repo "$REPO_PATH" --password-command "echo $REPO_PASSWORD" >> "$LOG_FILE" 2>&1
+  else
+    restic backup "${BACKUP_PATHS[@]}" --repo "$REPO_PATH" --password-command "echo $REPO_PASSWORD" >> "$LOG_FILE" 2>&1
+  fi
+  logLine "" 0
+done
 
 logLine "=== Completed backup process ===" 1
 curl -H "$NTFY_AUTH" -H "Filename: backupLog.log" -T "$LOG_FILE" $NTFY_URL
