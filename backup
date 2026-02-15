@@ -31,13 +31,11 @@ logLine() {
 }
 
 logLine "=== Starting backup process ===" 1
-curl -H "$NTFY_AUTH" -d "Backup started" $NTFY_URL
 
 if ! [[ ${#REPO_PATHS[@]} -gt 0 ]]; then
   logLine "No backup repositories given." 0
   logLine "=== Completed backup process ===" 1
-  curl -H "$NTFY_AUTH" -H "Filename: backupLog.log" -T "$LOG_FILE" $NTFY_URL
-  curl -H "$NTFY_AUTH" -d "Backup failed" $NTFY_URL
+  curl -H "$NTFY_AUTH" -H "Filename: fail_$LOG_FILE_DATE.log" -T "$LOG_FILE" $NTFY_URL
   exit 1
 fi
 
@@ -45,8 +43,7 @@ for REPO_PATH in "${REPO_PATHS[@]}"; do
   if ! [[ -d "$REPO_PATH" ]]; then
     logLine "Backup repository \"$REPO_PATH\" not found." 0
     logLine "=== Completed backup process ===" 1
-    curl -H "$NTFY_AUTH" -H "Filename: backupLog.log" -T "$LOG_FILE" $NTFY_URL
-    curl -H "$NTFY_AUTH" -d "Backup failed" $NTFY_URL
+    curl -H "$NTFY_AUTH" -H "Filename: fail_$LOG_FILE_DATE.log" -T "$LOG_FILE" $NTFY_URL
     exit 1
   fi
 done
@@ -54,8 +51,7 @@ done
 if ! [[ ${#BACKUP_PATHS[@]} -gt 0 ]]; then
   logLine "BACKUP_PATHS empty or missing from .env file." 0
   logLine "=== Completed backup process ===" 1
-  curl -H "$NTFY_AUTH" -H "Filename: backupLog.log" -T "$LOG_FILE" $NTFY_URL
-  curl -H "$NTFY_AUTH" -d "Backup failed" $NTFY_URL
+  curl -H "$NTFY_AUTH" -H "Filename: fail_$LOG_FILE_DATE.log" -T "$LOG_FILE" $NTFY_URL
   exit 1
 fi
 
@@ -63,8 +59,7 @@ for BACKUP_PATH in "${BACKUP_PATHS[@]}"; do
   if ! [[ -d "$BACKUP_PATH" || -f "$BACKUP_PATH" ]]; then
     logLine "Path \"$BACKUP_PATH\" not found." 0
     logLine "=== Completed backup process ===" 1
-    curl -H "$NTFY_AUTH" -H "Filename: backupLog.log" -T "$LOG_FILE" $NTFY_URL
-    curl -H "$NTFY_AUTH" -d "Backup failed" $NTFY_URL
+    curl -H "$NTFY_AUTH" -H "Filename: fail_$LOG_FILE_DATE.log" -T "$LOG_FILE" $NTFY_URL
     exit 1
   fi
 done
@@ -92,6 +87,5 @@ for REPO_PATH in "${REPO_PATHS[@]}"; do
 done
 
 logLine "=== Completed backup process ===" 1
-curl -H "$NTFY_AUTH" -H "Filename: backupLog.log" -T "$LOG_FILE" $NTFY_URL
-curl -H "$NTFY_AUTH" -d "Backup completed" $NTFY_URL
+curl -H "$NTFY_AUTH" -H "Filename: done_$LOG_FILE_DATE.log" -T "$LOG_FILE" $NTFY_URL
 
