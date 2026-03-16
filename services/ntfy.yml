@@ -1,7 +1,7 @@
 services:
   ntfy:
     container_name: Ntfy
-    image: binwiederhier/ntfy
+    image: binwiederhier/ntfy:latest
     user: ${PUID}:${PGID}
     environment:
       TZ: ${TZ}
@@ -22,4 +22,10 @@ services:
       - ${NTFY_PORT}:80
     restart: unless-stopped
     init: true
-
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/v1/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

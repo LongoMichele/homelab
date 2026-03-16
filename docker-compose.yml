@@ -3,3 +3,8 @@ volumes:
   media:
   pgdata:
   redisdata:
+
+networks:
+  internal:
+    internal: true
+  proxy:

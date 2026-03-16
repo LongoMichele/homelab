@@ -8,6 +8,13 @@ services:
     volumes:
       - /:/mnt/host:ro
     restart: unless-stopped
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
   homarr:
     container_name: Homarr
     image: ghcr.io/homarr-labs/homarr:latest
@@ -19,4 +26,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${CONFIG_ROOT}/homarr/appdata:/appdata
     restart: unless-stopped
-
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7575 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

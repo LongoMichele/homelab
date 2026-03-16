@@ -1,10 +1,17 @@
 services:
   broker:
     container_name: Redis
-    image: docker.io/library/redis:8
+    image: docker.io/library/redis:8.0
     volumes:
       - redisdata:/data
     restart: unless-stopped
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   db:
     container_name: Postgres
     image: docker.io/library/postgres:18
@@ -15,6 +22,13 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql
     restart: unless-stopped
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PAPERLESS_DB_USER} -d ${PAPERLESS_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   webserver:
     container_name: Paperless
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
@@ -30,7 +44,17 @@ services:
       - ${PAPERLESS_EXPORT_VOLUME}:/usr/src/paperless/export
       - ${PAPERLESS_CONSUME_VOLUME}:/usr/src/paperless/consume
     depends_on:
-      - db
-      - broker
+      db:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
     restart: unless-stopped
+    networks:
+      - internal
+      - proxy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:${PAPERLESS_PORT}/api/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 

@@ -84,8 +84,15 @@ for REPO_PATH in "${REPO_PATHS[@]}"; do
     restic backup "${BACKUP_PATHS[@]}" --repo "$REPO_PATH" --password-command "echo $REPO_PASSWORD" >> "$LOG_FILE" 2>&1
   fi
   logLine "" 0
+
+  logLine "Applying retention policy for repo ${REPO_PATH}" 0
+  restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune --repo "$REPO_PATH" --password-command "echo $REPO_PASSWORD" >> "$LOG_FILE" 2>&1
+  logLine "" 0
+
+  logLine "Verifying integrity for repo ${REPO_PATH}" 0
+  restic check --repo "$REPO_PATH" --password-command "echo $REPO_PASSWORD" >> "$LOG_FILE" 2>&1
+  logLine "" 0
 done
 
 logLine "=== Completed backup process ===" 1
 curl -H "$NTFY_AUTH" -H "Filename: done_$LOG_FILE_DATE.log" -T "$LOG_FILE" $NTFY_URL
-
